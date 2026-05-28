@@ -2,6 +2,8 @@
 
 `procwatch` is a Linux process monitor daemon with a TCP streaming server and an ncurses client.
 
+![procwatch screenshot](src/ChatGPT%20Image%20May%2028%2C%202026%2C%2008_38_51%20AM.png)
+
 ```
              /proc
                |

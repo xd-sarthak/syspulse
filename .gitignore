@@ -2,3 +2,4 @@ build/
 *.o
 procwatchd
 procwatch-client
+spec.md

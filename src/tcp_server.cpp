@@ -123,8 +123,20 @@ void* TCPServer::client_thread_entry(void* arg)
         break;
     }
 
+    server->mark_client_disconnected(pthread_self());
     server->broker_.unregister_client(fd);
     return nullptr;
+}
+
+void TCPServer::mark_client_disconnected(pthread_t thread)
+{
+    MutexLock guard(client_lock_);
+    for (ClientThread& client : client_threads_) {
+        if (pthread_equal(client.thread, thread)) {
+            client.fd = -1;
+            break;
+        }
+    }
 }
 
 void TCPServer::run()

@@ -21,6 +21,7 @@ public:
 private:
     static void* thread_entry(void* arg);
     static void* client_thread_entry(void* arg);
+    void mark_client_disconnected(pthread_t thread);
     void run();
 
     struct ClientThread {

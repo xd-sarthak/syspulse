@@ -112,14 +112,44 @@ bool extract_string(const char* object, const char* key, char* out, size_t out_s
         return false;
     }
     found += strlen(key);
-    const char* end = strchr(found, '"');
-    if (end == nullptr) {
-        return false;
+
+    size_t written = 0;
+    for (const char* p = found; *p != '\0'; ++p) {
+        if (*p == '"') {
+            out[written] = '\0';
+            return true;
+        }
+        char value = *p;
+        if (*p == '\\') {
+            ++p;
+            if (*p == '\0') {
+                return false;
+            }
+            switch (*p) {
+            case 'n':
+                value = '\n';
+                break;
+            case 'r':
+                value = '\r';
+                break;
+            case 't':
+                value = '\t';
+                break;
+            case '\\':
+            case '"':
+                value = *p;
+                break;
+            default:
+                value = *p;
+                break;
+            }
+        }
+        if (written + 1 < out_size) {
+            out[written++] = value;
+        }
     }
-    const size_t length = std::min(static_cast<size_t>(end - found), out_size - 1);
-    memcpy(out, found, length);
-    out[length] = '\0';
-    return true;
+
+    return false;
 }
 
 void parse_snapshot_batch(const std::string& line, ClientState& state)
@@ -285,9 +315,15 @@ void sort_snapshots(std::vector<ProcessSnapshot>& snapshots, SortMode sort_mode,
 
 int run_tui(int socket_fd, const char* endpoint)
 {
-    ClientState state {socket_fd, PTHREAD_MUTEX_INITIALIZER, {}, {}, true, true};
+    ClientState state {};
+    state.fd = socket_fd;
+    state.running = true;
+    state.dirty = true;
+    pthread_mutex_init(&state.lock, nullptr);
+
     pthread_t reader {};
     if (pthread_create(&reader, nullptr, &reader_thread_entry, &state) != 0) {
+        pthread_mutex_destroy(&state.lock);
         return 1;
     }
 

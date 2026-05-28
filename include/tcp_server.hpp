@@ -23,6 +23,16 @@ private:
     static void* client_thread_entry(void* arg);
     void run();
 
+    struct ClientThread {
+        pthread_t thread;
+        int fd;
+    };
+
+    struct ClientContext {
+        TCPServer* server;
+        int fd;
+    };
+
     Broker& broker_;
     int port_;
     int listen_fd_;
@@ -30,5 +40,5 @@ private:
     pthread_t thread_;
     bool thread_started_;
     pthread_mutex_t client_lock_;
-    std::vector<pthread_t> client_threads_;
+    std::vector<ClientThread> client_threads_;
 };
